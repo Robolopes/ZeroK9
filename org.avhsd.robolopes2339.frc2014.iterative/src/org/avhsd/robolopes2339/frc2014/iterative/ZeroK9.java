@@ -143,7 +143,6 @@ public class ZeroK9 extends IterativeRobot {
     private final int clawButtonMiddle = 2;
     private final int clawButtonDown = 6;
     String currentClawPosition = "up";
-    boolean isMovingToMiddle = false;
     DigitalInput clawMiddleSwitch = new DigitalInput(4);
 
     
@@ -339,19 +338,9 @@ public class ZeroK9 extends IterativeRobot {
         } else if(clawJoystick.getRawButton(clawButtonDown)) {
             setClawArms("down");
         }
-        if (isMovingToMiddle && clawMiddleSwitch.get()) {
+        if (clawMiddleSwitch.get() && currentClawPosition.startsWith("moving")) {
             stopClawArms();
         }
-    }
-    
-    /*
-     * This method sets shooter motors
-     * 
-     * @param value motor speed
-     */
-    public void setClawMotors(double value) {
-        clawMotorA.set(value);
-        clawMotorB.set(value);
     }
     
     /*
@@ -378,7 +367,18 @@ public class ZeroK9 extends IterativeRobot {
     }
     
     /*
-     * Set claw to up, middle, or down (false)
+     * This method sets claw motors
+     * 
+     * @param value motor speed
+     */
+    public void setClawMotors(double value) {
+        clawMotorA.set(value);
+        clawMotorB.set(value);
+        SmartDashboard.putNumber("Claw value ", value);
+    }
+    
+    /*
+     * Set claw to up, middle, or down
      * 
      * @param liftUp true extends arms up, false retracts down.
      */
@@ -395,14 +395,14 @@ public class ZeroK9 extends IterativeRobot {
                 clawSolenoidUpB.set(false);
                 clawSolenoidDownA.set(true);
                 clawSolenoidDownB.set(true);
+                currentClawPosition = "moving to middle";
             } else if (currentClawPosition.equals("down")) {
                 clawSolenoidUpA.set(true);
                 clawSolenoidUpB.set(true);
                 clawSolenoidDownA.set(false);
                 clawSolenoidDownB.set(false);
+                currentClawPosition = "moving to middle";
             }
-            isMovingToMiddle = true;
-            currentClawPosition = "middle";
         } else if (mode.equalsIgnoreCase("down")) {
             clawSolenoidUpA.set(false);
             clawSolenoidUpB.set(false);
@@ -410,10 +410,11 @@ public class ZeroK9 extends IterativeRobot {
             clawSolenoidDownB.set(true);
             currentClawPosition = "down";
         }
+        SmartDashboard.putString("Claw position ", currentClawPosition);
     }
     
     /*
-     * Set lift arms to up (true) or down (false)
+     * Stop claw arms (used to stop in middle.
      * 
      * @param liftUp true extends arms up, false retracts down.
      */
@@ -422,7 +423,8 @@ public class ZeroK9 extends IterativeRobot {
         clawSolenoidUpB.set(false);
         clawSolenoidDownA.set(false);
         clawSolenoidDownB.set(false);
-        isMovingToMiddle = false;
+        currentClawPosition = "middle";
+        SmartDashboard.putString("Claw position ", currentClawPosition);
     }
     
     /**
