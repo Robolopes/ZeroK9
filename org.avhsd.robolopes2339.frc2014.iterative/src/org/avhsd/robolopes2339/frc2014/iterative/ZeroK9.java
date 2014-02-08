@@ -53,11 +53,6 @@ public class ZeroK9 extends IterativeRobot {
     /**********************/
     
     /*
-     * Set to true if using tank drive
-     */
-    private static final boolean useTankDrive = true;
-    
-    /*
      * Initialize joystck variables.
      * The (1) and (2) refer hardward channels 1 and 2 on the robot
      */
