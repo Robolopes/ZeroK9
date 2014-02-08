@@ -108,7 +108,7 @@ public class ZeroK9 extends IterativeRobot {
     private final Talon shooterMotorA = new Talon(5);
     private final Talon shooterMotorB = new Talon(6);
     private final Joystick shooterJoystick = operatorStick;
-    private final int shooterMotorLoadButton = 8;
+    private final int shooterWinchMotorLoadButton = 7;
     DigitalInput shooterStopSwitch = new DigitalInput(2);
     private boolean currentLoaderMode = false;
     private long shootButtonTime = 0;
@@ -317,6 +317,17 @@ public class ZeroK9 extends IterativeRobot {
         robotDrive.tankDrive(throttleLeft, throttleRight);
         
         /*
+         * Set shooter winch motors
+         */
+        if(shooterJoystick.getRawButton(shooterWinchMotorLoadButton) && shooterStopSwitch.get()) {
+            // Set shooter motors to load
+            setShootWinchMotors(0.3);
+        } else {
+            // Turn off shooter winch motors
+            setShootWinchMotors(0.0);
+        }
+                       /*
+        /*
          * Shoot
          */
         if (shootJoystick.getRawButton(shootButton)) {
@@ -335,7 +346,7 @@ public class ZeroK9 extends IterativeRobot {
             // Set Claw motor to Relase
             setClawMotors(-0.3);
         } else {
-            // Turn off shooter motors
+            // Turn off claw motors
             setClawMotors(0.0);
         }
                        /*
@@ -365,6 +376,17 @@ public class ZeroK9 extends IterativeRobot {
         } else {
             SmartDashboard.putString("Super shifter ", "Low");
         }
+    }
+    
+    /*
+     * This method sets shooter winch motors
+     * 
+     * @param value motor speed
+     */
+    public void setShootWinchMotors(double value) {
+        shooterMotorA.set(value);
+        shooterMotorB.set(value);
+        SmartDashboard.putNumber("Shoot motor value ", value);
     }
     
     /*
