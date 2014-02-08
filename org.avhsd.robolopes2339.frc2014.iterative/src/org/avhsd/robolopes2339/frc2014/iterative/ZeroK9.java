@@ -262,6 +262,16 @@ public class ZeroK9 extends IterativeRobot {
     public void teleopPeriodic() {
         SmartDashboard.putNumber("Telop Match Time ", m_ds.getMatchTime());
         SmartDashboard.putNumber("Telop Packet Number ", m_ds.getPacketNumber());
+        
+        String operatorButtons = "";
+        for (int iiButton = 0; iiButton < 10; iiButton++) {
+            if (iiButton > 0) {
+                operatorButtons += " ";
+            }
+            operatorButtons += (iiButton+1) + ":" + operatorStick.getRawButton(iiButton+1);
+        }
+        SmartDashboard.putString("Operator Buttons ", operatorButtons);
+        
         boolean pressure = compressor.getPressureSwitchValue();
         SmartDashboard.putBoolean("Pressure Sensor ", pressure);
         
@@ -318,7 +328,7 @@ public class ZeroK9 extends IterativeRobot {
         /*
          * Set claw motors
          */
-        if(clawJoystick.getRawButton(clawMotorButtonGrab) && !clawGrabSwitch.get()) {
+        if(clawJoystick.getRawButton(clawMotorButtonGrab) && clawGrabSwitch.get()) {
             // Set claw motor to Grab
             setClawMotors(0.3);
         } else if(clawJoystick.getRawButton(clawMotorButtonRelease)) {
@@ -338,7 +348,7 @@ public class ZeroK9 extends IterativeRobot {
         } else if(clawJoystick.getRawButton(clawButtonDown)) {
             setClawArms("down");
         }
-        if (clawMiddleSwitch.get() && currentClawPosition.startsWith("moving")) {
+        if (!clawMiddleSwitch.get() && currentClawPosition.startsWith("moving")) {
             stopClawArms();
         }
     }
