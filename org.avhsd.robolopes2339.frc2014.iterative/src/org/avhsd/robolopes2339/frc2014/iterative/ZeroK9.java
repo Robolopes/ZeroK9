@@ -275,6 +275,7 @@ public class ZeroK9 extends IterativeRobot {
         boolean pressure = compressor.getPressureSwitchValue();
         SmartDashboard.putBoolean("Pressure Sensor ", pressure);
         SmartDashboard.putBoolean("Shooter stop switch ", shooterStopSwitch.get());
+        SmartDashboard.putBoolean("Claw middle switch ", clawMiddleSwitch.get());
         
         
         /*
