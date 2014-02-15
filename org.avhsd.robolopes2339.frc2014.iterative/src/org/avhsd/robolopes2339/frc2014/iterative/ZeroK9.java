@@ -96,9 +96,8 @@ public class ZeroK9 extends IterativeRobot {
     private final Compressor compressor = new Compressor(pressureSwitchChannel, compressorRelayChannel);
     
     /*
-     * Initialize relay to control 2012 cooling fan
+     * Initialize relay to control cooling fan
      */
-    // TODO: Kept for reference, remove or change for 2013
     private final Relay fan = new Relay(2);
 
     /*
@@ -180,8 +179,7 @@ public class ZeroK9 extends IterativeRobot {
         startTime = System.currentTimeMillis();
         // Start compressor
         compressor.start();
-        // Turn on cooling fan at beginning of teleop
-        // TODO: Kept for reference, remove or change for 2013
+        // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
     }
 
@@ -249,7 +247,6 @@ public class ZeroK9 extends IterativeRobot {
         // Start compressor
         compressor.start();
         // Turn on cooling fan at beginning of teleop
-        // TODO: Kept for reference, remove or change for 2013
         fan.set(Relay.Value.kForward);
         // Shift to high for teleop
         superShifter.set(false);
