@@ -354,23 +354,30 @@ public class ZeroK9 extends IterativeRobot {
         /*
          * Set claw arm oontrols
          */
-        boolean middleIsStop = true;
-        middleIsStop = driverStation.getDigitalIn(1);
-        SmartDashboard.putBoolean("Middle is stop", middleIsStop);
-        if(clawJoystick.getRawButton(clawButtonUp)) {
-            setClawArms("up");
-        } else if(clawJoystick.getRawButton(clawButtonMiddle)) {
-            if (middleIsStop) {
-                stopClawArms();
+        boolean manualStop = true;
+        manualStop = driverStation.getDigitalIn(1);
+        SmartDashboard.putBoolean("Manual stop", manualStop);
+        if (manualStop) {
+            if(clawJoystick.getRawButton(clawButtonUp)) {
+                setClawArms("up");
+            } else if(clawJoystick.getRawButton(clawButtonDown)) {
+                setClawArms("down");
             } else {
-                setClawArms ("middle");
+                stopClawArms();
             }
-        } else if(clawJoystick.getRawButton(clawButtonDown)) {
-            setClawArms("down");
-        }
-        SmartDashboard.putBoolean("Claw mag switch", clawMiddleSwitch.get());
-        if (!clawMiddleSwitch.get() && currentClawPosition.startsWith("moving")) {
-            stopClawArms();
+            
+        } else {
+            if(clawJoystick.getRawButton(clawButtonUp)) {
+                setClawArms("up");
+            } else if(clawJoystick.getRawButton(clawButtonMiddle)) {
+                setClawArms ("middle");
+            } else if(clawJoystick.getRawButton(clawButtonDown)) {
+                setClawArms("down");
+            }
+            SmartDashboard.putBoolean("Claw mag switch", clawMiddleSwitch.get());
+            if (!clawMiddleSwitch.get() && currentClawPosition.startsWith("moving")) {
+                stopClawArms();
+            }
         }
     }
     
