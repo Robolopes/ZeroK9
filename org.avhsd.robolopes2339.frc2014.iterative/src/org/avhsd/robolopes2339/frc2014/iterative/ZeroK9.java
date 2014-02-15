@@ -63,7 +63,8 @@ public class ZeroK9 extends IterativeRobot {
     private final Joystick operatorStick = new Joystick(3);
     
     // Class to interact with driver station
-    private final DriverStationEnhancedIO driverStation = DriverStation.getInstance().getEnhancedIO();
+    //private final DriverStationEnhancedIO driverStation = DriverStation.getInstance().getEnhancedIO();
+    private final DriverStation driverStation = DriverStation.getInstance();
     
     /*
      * Initialize motor controllers.
@@ -339,6 +340,7 @@ public class ZeroK9 extends IterativeRobot {
         /*
          * Set claw motors
          */
+        
         if(clawJoystick.getRawButton(clawMotorButtonGrab) && clawGrabSwitch.get()) {
             // Set claw motor to Grab
             setClawMotors(0.3);
@@ -349,16 +351,24 @@ public class ZeroK9 extends IterativeRobot {
             // Turn off claw motors
             setClawMotors(0.0);
         }
-                       /*
+        /*
          * Set claw arm oontrols
          */
+        boolean middleIsStop = true;
+        middleIsStop = driverStation.getDigitalIn(1);
+        SmartDashboard.putBoolean("Middle is stop", middleIsStop);
         if(clawJoystick.getRawButton(clawButtonUp)) {
             setClawArms("up");
         } else if(clawJoystick.getRawButton(clawButtonMiddle)) {
-             setClawArms ("middle");
+            if (middleIsStop) {
+                stopClawArms();
+            } else {
+                setClawArms ("middle");
+            }
         } else if(clawJoystick.getRawButton(clawButtonDown)) {
             setClawArms("down");
         }
+        SmartDashboard.putBoolean("Claw mag switch", clawMiddleSwitch.get());
         if (!clawMiddleSwitch.get() && currentClawPosition.startsWith("moving")) {
             stopClawArms();
         }
