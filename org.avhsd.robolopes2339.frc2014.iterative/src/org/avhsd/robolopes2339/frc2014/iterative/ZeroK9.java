@@ -209,14 +209,21 @@ public class ZeroK9 extends IterativeRobot {
         final long delayTime = 0;
         final long driveTime = delayTime + 1500;
         final double driveSpeed = 0.6;
-        final long shooterWinchMotorRetractTime = driveTime + 1000;
+        final long shooterWinchMotorRetractTime = 1000;
         final double shooterWinchMotorSpeed = 0.3;
         
         boolean shootEarly = false;
         boolean haveShot = false;
         
+        // Retract shooter right away
+        if (elapsed < shooterWinchMotorRetractTime && !haveShot) {
+            setShootWinchMotors(shooterWinchMotorSpeed); 
+        } else {
+            setShootWinchMotors(0.0);
+        }
+        
         String autoMode = "None";
-        if(elapsed > 0 && elapsed < delayTime) {
+        if(elapsed < delayTime) {
             autoMode = "Waiting ...";
             /*
              * Wait before starting autonomous logic
@@ -231,11 +238,9 @@ public class ZeroK9 extends IterativeRobot {
             superShifter.set(true);
             isSuperShifterLow = true;
             robotDrive.tankDrive(-driveSpeed, -driveSpeed);
-        } else if (elapsed < shooterWinchMotorRetractTime) {
-            autoMode = "Retract shooter";
-            robotDrive.tankDrive(0.0, 0.0);
-            setShootWinchMotors(shooterWinchMotorSpeed);
-        } else if (elapsed > shooterWinchMotorRetractTime && !haveShot) {
+        } else if (elapsed > driveTime && elapsed < shooterWinchMotorRetractTime && !haveShot) {
+            autoMode = "Retracting";
+        } else if (elapsed > driveTime && elapsed > shooterWinchMotorRetractTime && !haveShot) {
             autoMode = "Waiting to shoot";
             setShootWinchMotors(0);
             if (shootEarly || elapsed > 6000) {
