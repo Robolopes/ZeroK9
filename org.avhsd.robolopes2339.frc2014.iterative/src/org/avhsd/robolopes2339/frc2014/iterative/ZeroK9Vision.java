@@ -30,8 +30,29 @@ import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
 
 public class ZeroK9Vision {
     
+    public class Scores {
+        double rectangularity;
+        double aspectRatioVertical;
+        double aspectRatioHorizontal;
+    }
+    
+    public class TargetReport {
+        boolean isValid = false; // True is this is a valid target object
+        int verticalIndex;
+        int horizontalIndex;
+        boolean Hot;
+        double totalScore;
+        double leftScore;
+        double rightScore;
+        double tapeWidthScore;
+        double verticalScore;
+    };
+    
+    private final Object initLock = new Object();
+    private final Object imageLock = new Object();
     private boolean isVisionInitialized = false;
-    private boolean haveImage = false;
+    private boolean processingImage = false;
+    private TargetReport mostRecentTarget;
 
     //Camera constants used for distance calculation
     final int Y_IMAGE_RES = 480;		//X Image resolution in pixels, should be 120, 240 or 480
@@ -57,24 +78,12 @@ public class ZeroK9Vision {
 
     AxisCamera camera;          // the axis camera object (connected to the switch)
     CriteriaCollection cc;      // the criteria for doing the particle filter operation
-
-    public class Scores {
-        double rectangularity;
-        double aspectRatioVertical;
-        double aspectRatioHorizontal;
+    
+    public ZeroK9Vision() {
+        mostRecentTarget = new TargetReport();
+        mostRecentTarget.isValid = false;
     }
-    
-    public class TargetReport {
-		int verticalIndex;
-		int horizontalIndex;
-		boolean Hot;
-		double totalScore;
-		double leftScore;
-		double rightScore;
-		double tapeWidthScore;
-		double verticalScore;
-    };
-    
+
     private void visionInitPrivate() {
         camera = AxisCamera.getInstance();  // get an instance of the camera
         cc = new CriteriaCollection();      // create the criteria for the particle filter
@@ -82,11 +91,15 @@ public class ZeroK9Vision {
     }
 
     public void visionInit() {
-        isVisionInitialized = false;
         Runnable visionInitRunnable = new Runnable() {
             public void run() {
-                visionInitPrivate();
-                isVisionInitialized = true;
+                synchronized(initLock) {
+                    if (!isVisionInitialized) {
+                        visionInitPrivate();
+                        isVisionInitialized = true;
+                    }
+                    initLock.notifyAll();
+                }
             }
         };
         Thread initThread = new Thread(visionInitRunnable);
@@ -94,12 +107,22 @@ public class ZeroK9Vision {
     }
 
     public void processCameraImagePrivate() {
+        // Notify that image processing has started
+        synchronized(imageLock) {
+            if (processingImage) {
+                return; // return if already processing image
+            }
+            processingImage = true;
+        }
+        // Wait for vision initialization to finish
+        synchronized(initLock) {
+        }
 	TargetReport target = new TargetReport();
 	int verticalTargets[] = new int[MAX_PARTICLES];
 	int horizontalTargets[] = new int[MAX_PARTICLES];
 	int verticalTargetCount, horizontalTargetCount;
         
-
+        target.isValid = false;
         try {
             /**
              * Do the image capture with the camera and apply the algorithm described above. This
@@ -224,22 +247,35 @@ public class ZeroK9Vision {
         } catch (NIVisionException ex) {
             ex.printStackTrace();
         }
+        
+        // Update most recent target information
+        synchronized(imageLock) {
+            mostRecentTarget = target;
+            imageLock.notifyAll();
+            processingImage = false;
+        }
     }
     
-    public void processCameraImage() {
-        haveImage = false;
-        Runnable processImageRunnable = new Runnable() {
-            public void run() {
-                processCameraImagePrivate();
-                haveImage = true;
-            }
-        };
-        Thread imageThread = new Thread(processImageRunnable);
-        imageThread.start();
+    public void getNewTarget() {
+        if (!processingImage) {
+            // Only process image if not currently processing image
+            Runnable processImageRunnable = new Runnable() {
+                public void run() {
+                    processCameraImagePrivate();
+                }
+            };
+            Thread imageThread = new Thread(processImageRunnable);
+            imageThread.start();
+        }
     }
 
     boolean isTargetActive() {
-        return true;
+        synchronized(imageLock) {
+            if (mostRecentTarget.isValid) {
+                return mostRecentTarget.Hot;
+            }
+        }
+        return false;
     }
     
     /**
