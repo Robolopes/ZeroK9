@@ -155,6 +155,8 @@ public class ZeroK9 extends IterativeRobot {
      * Initialize values for autonomous control
      */
     private long startTime = 0;
+    private boolean shootEarly = false;
+    private boolean haveShot = false;
     
     /*
      * Time variables to help with timed printouts
@@ -176,7 +178,7 @@ public class ZeroK9 extends IterativeRobot {
         System.out.println("Robot init time: " + robotStartTime);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
-        visionControl.visionInit();
+        //visionControl.visionInit();
     }
     
     /*
@@ -188,7 +190,9 @@ public class ZeroK9 extends IterativeRobot {
         compressor.start();
         // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
-        visionControl.processCameraImage();
+        //visionControl.processCameraImage();
+        shootEarly = false;
+        haveShot = false;
     }
 
     /**
@@ -201,6 +205,7 @@ public class ZeroK9 extends IterativeRobot {
         double driveTimeSlider = 2.0;
         double driveSpeedSlider = 5.0;
         SmartDashboard.putNumber("Autonomous Shooter Slider ", shooterSlider);
+        SmartDashboard.putBoolean("Have shot ", haveShot);
         
         /*
          * Set time intervals for autonomous
@@ -212,8 +217,8 @@ public class ZeroK9 extends IterativeRobot {
         final long shooterWinchMotorRetractTime = 1000;
         final double shooterWinchMotorSpeed = 0.3;
         
-        boolean shootEarly = false;
-        boolean haveShot = false;
+        // Don't use claw motors in autonomous
+        setClawMotors(0.0);
         
         // Retract shooter right away
         if (elapsed < shooterWinchMotorRetractTime && !haveShot) {
@@ -240,8 +245,10 @@ public class ZeroK9 extends IterativeRobot {
             robotDrive.tankDrive(-driveSpeed, -driveSpeed);
         } else if (elapsed > driveTime && elapsed < shooterWinchMotorRetractTime && !haveShot) {
             autoMode = "Retracting";
+            robotDrive.tankDrive(0.0, 0.0);
         } else if (elapsed > driveTime && elapsed > shooterWinchMotorRetractTime && !haveShot) {
             autoMode = "Waiting to shoot";
+            robotDrive.tankDrive(0.0, 0.0);
             setShootWinchMotors(0);
             if (shootEarly || elapsed > 6000) {
                 setShootSolenoid(true);
@@ -253,10 +260,8 @@ public class ZeroK9 extends IterativeRobot {
              * Done moving and shooting, shut down
              */
             robotDrive.tankDrive(0.0, 0.0);
-            setClawMotors(0.0);
-            setShootWinchMotors(0);
             if (elapsed > 9000) {
-                setShootSolenoid(true);
+                setShootSolenoid(false);
             }
         }
         SmartDashboard.putString("Autonomous Mode ", autoMode);
