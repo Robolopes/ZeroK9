@@ -223,6 +223,9 @@ public class ZeroK9 extends IterativeRobot {
         // Don't use claw motors in autonomous
         setClawMotors(0.0);
         
+        // Make sure claw is down
+        setClawArms("down");
+        
         // Retract shooter right away
         if (elapsed < shooterWinchMotorRetractTime && !haveShot) {
             setShootWinchMotors(shooterWinchMotorSpeed); 
