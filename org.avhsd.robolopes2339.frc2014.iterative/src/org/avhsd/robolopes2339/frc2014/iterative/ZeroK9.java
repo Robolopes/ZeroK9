@@ -178,7 +178,9 @@ public class ZeroK9 extends IterativeRobot {
         System.out.println("Robot init time: " + robotStartTime);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
-        //visionControl.visionInit();
+        System.out.println("Before init: " + System.currentTimeMillis());
+        visionControl.visionInit();
+        System.out.println("After init: " + System.currentTimeMillis());
     }
     
     /*
@@ -186,11 +188,14 @@ public class ZeroK9 extends IterativeRobot {
      */
     public void autonomousInit() {
         startTime = System.currentTimeMillis();
+        System.out.println("Autonomous init time: " + startTime);
         // Start compressor
         compressor.start();
         // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
-        //visionControl.processCameraImage();
+        System.out.println("Before image: " + System.currentTimeMillis());
+        visionControl.processCameraImage();
+        System.out.println("After image: " + System.currentTimeMillis());
         shootEarly = false;
         haveShot = false;
     }
