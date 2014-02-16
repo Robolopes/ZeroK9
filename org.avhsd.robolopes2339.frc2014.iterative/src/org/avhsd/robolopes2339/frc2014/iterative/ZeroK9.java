@@ -209,15 +209,11 @@ public class ZeroK9 extends IterativeRobot {
         final long delayTime = 0;
         final long driveTime = delayTime + 1500;
         final double driveSpeed = 0.6;
-        final long motorStartUpTime = 2000;
-        final long loaderRetractTime = 1000;
-        final double shooterSpeed = 0.8;
-        final long shotDuration = 2000;
-        final long firstShotTime = driveTime + motorStartUpTime;
-        final long secondShotTime = firstShotTime + shotDuration;
-        final long thirdShotTime = secondShotTime + shotDuration;
-        final long fourthShotTime = thirdShotTime + shotDuration;
-        final long finishFourthShotTime = fourthShotTime + shotDuration;
+        final long shooterWinchMotorRetractTime = driveTime + 1000;
+        final double shooterWinchMotorSpeed = 0.3;
+        
+        boolean shootEarly = false;
+        boolean haveShot = false;
         
         String autoMode = "None";
         if(elapsed > 0 && elapsed < delayTime) {
@@ -235,15 +231,28 @@ public class ZeroK9 extends IterativeRobot {
             superShifter.set(true);
             isSuperShifterLow = true;
             robotDrive.tankDrive(-driveSpeed, -driveSpeed);
-        } else if (elapsed > driveTime && elapsed < firstShotTime) {
-            autoMode = "Do something";
+        } else if (elapsed < shooterWinchMotorRetractTime) {
+            autoMode = "Retract shooter";
+            robotDrive.tankDrive(0.0, 0.0);
+            setShootWinchMotors(shooterWinchMotorSpeed);
+        } else if (elapsed > shooterWinchMotorRetractTime && !haveShot) {
+            autoMode = "Waiting to shoot";
+            setShootWinchMotors(0);
+            if (shootEarly || elapsed > 6000) {
+                setShootSolenoid(true);
+                haveShot = true;
+            }
         } else {
             autoMode = "Done";
             /*
              * Done moving and shooting, shut down
              */
-            robotDrive.arcadeDrive(0.0, 0.0);
+            robotDrive.tankDrive(0.0, 0.0);
             setClawMotors(0.0);
+            setShootWinchMotors(0);
+            if (elapsed > 9000) {
+                setShootSolenoid(true);
+            }
         }
         SmartDashboard.putString("Autonomous Mode ", autoMode);
     }
