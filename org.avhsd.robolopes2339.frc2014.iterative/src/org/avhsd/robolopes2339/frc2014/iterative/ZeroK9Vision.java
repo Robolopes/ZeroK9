@@ -29,6 +29,9 @@ import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
  */
 
 public class ZeroK9Vision {
+    
+    private boolean isVisionInitialized = false;
+    private boolean haveImage = false;
 
     //Camera constants used for distance calculation
     final int Y_IMAGE_RES = 480;		//X Image resolution in pixels, should be 120, 240 or 480
@@ -72,13 +75,25 @@ public class ZeroK9Vision {
 		double verticalScore;
     };
     
-    public void visionInit() {
+    private void visionInitPrivate() {
         camera = AxisCamera.getInstance();  // get an instance of the camera
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
     }
 
-    public void processCameraImage() {
+    public void visionInit() {
+        isVisionInitialized = false;
+        Runnable visionInitRunnable = new Runnable() {
+            public void run() {
+                visionInitPrivate();
+                isVisionInitialized = true;
+            }
+        };
+        Thread initThread = new Thread(visionInitRunnable);
+        initThread.start();
+    }
+
+    public void processCameraImagePrivate() {
 	TargetReport target = new TargetReport();
 	int verticalTargets[] = new int[MAX_PARTICLES];
 	int horizontalTargets[] = new int[MAX_PARTICLES];
@@ -95,9 +110,10 @@ public class ZeroK9Vision {
             ColorImage image = camera.getImage();     // comment if using stored images
             image.write("/cameraImage.bmp");
             //ColorImage image;   // get the sample image from the cRIO flash
-            //image = new RGBImage("/cameraImageVert.jpg");
+            //image = new RGBImage("/cameraImage.jpg");
             //BinaryImage thresholdImage = image.thresholdHSV(105, 137, 230, 255, 133, 183);   // keep only green objects
-            BinaryImage thresholdImage = image.thresholdRGB(0, 255, 200, 255, 25, 255);   // keep only green objects
+            //BinaryImage thresholdImage = image.thresholdRGB(0, 255, 200, 255, 25, 255);   // keep only green objects
+            BinaryImage thresholdImage = image.thresholdRGB(220, 255, 130, 255, 130, 255);   // keep only red objects
             thresholdImage.write("/threshold.bmp");
             BinaryImage filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles
             filteredImage.write("/filteredImage.bmp");
@@ -209,7 +225,23 @@ public class ZeroK9Vision {
             ex.printStackTrace();
         }
     }
+    
+    public void processCameraImage() {
+        haveImage = false;
+        Runnable processImageRunnable = new Runnable() {
+            public void run() {
+                processCameraImagePrivate();
+                haveImage = true;
+            }
+        };
+        Thread imageThread = new Thread(processImageRunnable);
+        imageThread.start();
+    }
 
+    boolean isTargetActive() {
+        return true;
+    }
+    
     /**
      * Computes the estimated distance to a target using the height of the particle in the image. For more information and graphics
      * showing the math behind this approach see the Vision Processing section of the ScreenStepsLive documentation.
@@ -304,7 +336,7 @@ public class ZeroK9Vision {
 	 */
 	double ratioToScore(double ratio)
 	{
-		return (Math.max(0, Math.min(100*(1-Math.abs(1-ratio)), 100)));
+            return (Math.max(0, Math.min(100*(1-Math.abs(1-ratio)), 100)));
 	}
 	
 	/**
