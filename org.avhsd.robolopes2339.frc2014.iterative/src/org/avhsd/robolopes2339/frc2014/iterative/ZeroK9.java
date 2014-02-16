@@ -155,7 +155,6 @@ public class ZeroK9 extends IterativeRobot {
      * Initialize values for autonomous control
      */
     private long startTime = 0;
-    private boolean shootEarly = false;
     private boolean haveShot = false;
     
     /*
@@ -194,9 +193,8 @@ public class ZeroK9 extends IterativeRobot {
         // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
         System.out.println("Before image: " + System.currentTimeMillis());
-        visionControl.processCameraImage();
+        visionControl.getNewTarget();
         System.out.println("After image: " + System.currentTimeMillis());
-        shootEarly = false;
         haveShot = false;
     }
 
@@ -233,6 +231,7 @@ public class ZeroK9 extends IterativeRobot {
         }
         
         String autoMode = "None";
+        SmartDashboard.putBoolean("Actve target ", visionControl.isTargetActive());
         if(elapsed < delayTime) {
             autoMode = "Waiting ...";
             /*
@@ -255,7 +254,7 @@ public class ZeroK9 extends IterativeRobot {
             autoMode = "Waiting to shoot";
             robotDrive.tankDrive(0.0, 0.0);
             setShootWinchMotors(0);
-            if (shootEarly || elapsed > 6000) {
+            if (visionControl.isTargetActive() || elapsed > 6000) {
                 setShootSolenoid(true);
                 haveShot = true;
             }
