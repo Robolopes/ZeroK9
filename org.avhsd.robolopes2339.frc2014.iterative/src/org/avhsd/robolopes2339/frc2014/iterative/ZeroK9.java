@@ -144,6 +144,11 @@ public class ZeroK9 extends IterativeRobot {
     private final int clawButtonDown = 6;
     String currentClawPosition = "up";
     DigitalInput clawMiddleSwitch = new DigitalInput(4);
+    
+    /*
+     * Vision class
+    */
+    private final ZeroK9Vision visionControl = new ZeroK9Vision();
 
     
     /*
@@ -171,6 +176,7 @@ public class ZeroK9 extends IterativeRobot {
         System.out.println("Robot init time: " + robotStartTime);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+        visionControl.visionInit();
     }
     
     /*
@@ -182,6 +188,7 @@ public class ZeroK9 extends IterativeRobot {
         compressor.start();
         // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
+        visionControl.processCameraImage();
     }
 
     /**
