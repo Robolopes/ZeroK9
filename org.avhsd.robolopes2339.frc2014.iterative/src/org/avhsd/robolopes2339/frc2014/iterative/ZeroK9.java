@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Encoder;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -88,6 +89,12 @@ public class ZeroK9 extends IterativeRobot {
     private final Joystick superShifterJoystick = driveStickLeft;
     private boolean isSuperShifterLow = false;
     private boolean wasSuperShifterButtonJustPushed = false;
+    
+    /*
+    * Drive enocoder
+    */
+    private final Encoder encoderDrive = new Encoder(5, 8);
+    //private final Encoder encodeDriveRight = new Encoder(7, 8);
     
     /*
      * Initialize compressor
@@ -192,9 +199,13 @@ public class ZeroK9 extends IterativeRobot {
         compressor.start();
         // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
+        // Initialize vision
         System.out.println("Before image: " + System.currentTimeMillis());
         visionControl.getNewTarget();
         System.out.println("After image: " + System.currentTimeMillis());
+        // Initialize drive encoder
+        encoderDrive.reset();
+        encoderDrive.setDistancePerPulse(1.0);
         haveShot = false;
     }
 
@@ -208,6 +219,8 @@ public class ZeroK9 extends IterativeRobot {
         double driveTimeSlider = 2.0;
         double driveSpeedSlider = 5.0;
         SmartDashboard.putNumber("Autonomous Shooter Slider ", shooterSlider);
+        SmartDashboard.putNumber("Drive encoder distance", encoderDrive.getRaw());
+        SmartDashboard.putBoolean("Drive encoder direction", encoderDrive.getDirection());
         SmartDashboard.putBoolean("Have shot ", haveShot);
         
         /*
