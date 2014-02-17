@@ -219,7 +219,7 @@ public class ZeroK9 extends IterativeRobot {
         double driveTimeSlider = 2.0;
         double driveSpeedSlider = 5.0;
         SmartDashboard.putNumber("Autonomous Shooter Slider ", shooterSlider);
-        SmartDashboard.putNumber("Drive encoder distance", encoderDrive.getRaw());
+        SmartDashboard.putNumber("Drive encoder distance", encoderDrive.getDistance());
         SmartDashboard.putBoolean("Drive encoder direction", encoderDrive.getDirection());
         SmartDashboard.putBoolean("Have shot ", haveShot);
         
