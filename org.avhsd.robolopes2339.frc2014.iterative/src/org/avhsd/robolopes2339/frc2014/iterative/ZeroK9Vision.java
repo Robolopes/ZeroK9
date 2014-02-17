@@ -213,6 +213,7 @@ public class ZeroK9Vision {
                     }
 
                     //Zero out scores and set verticalIndex to first target in case there are no horizontal targets
+                    target.isValid = true;
                     target.totalScore = target.leftScore = target.rightScore = target.tapeWidthScore = target.verticalScore = 0;
                     target.verticalIndex = verticalTargets[0];
                     for (int i = 0; i < verticalTargetCount; i++)
@@ -291,6 +292,7 @@ public class ZeroK9Vision {
         // Update most recent target information
         synchronized(imageLock) {
             mostRecentTarget = target;
+            System.out.println("mostRecentTarget isValid: " + mostRecentTarget.isValid + ", is hot: " + mostRecentTarget.Hot);
             imageLock.notifyAll();
             processingImage = false;
         }
