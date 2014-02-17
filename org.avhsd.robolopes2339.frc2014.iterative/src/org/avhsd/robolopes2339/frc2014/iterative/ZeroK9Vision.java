@@ -105,6 +105,36 @@ public class ZeroK9Vision {
         Thread initThread = new Thread(visionInitRunnable);
         initThread.start();
     }
+    
+    /**
+     * Get FRC hue value
+     * @param hueAngle 0 to 360
+     * @return hue on a scale of 0 to 255
+     */
+    private int getHue(int hueAngle) {
+        Double hue = new Double((255.0/360.0) * Integer.valueOf(hueAngle).doubleValue() + 0.5);
+        return hue.intValue();
+    }
+
+    /**
+     * Get FRC luminence value
+     * @param saturationPercent 0 to 100
+     * @return luminence on a scale of 0 to 255
+     */
+    private int getSaturation(int saturationPercent) {
+        Double saturation = new Double((255.0/100.0) * Integer.valueOf(saturationPercent).doubleValue() + 0.5);
+        return saturation.intValue();
+    }
+
+    /**
+     * Get FRC luminence value
+     * @param luminencePercent 0 to 100
+     * @return liminence on a scale of 0 to 255
+     */
+    private int getLuminence(int luminencePercent) {
+        Double luminence = new Double((255.0/100.0) * Integer.valueOf(luminencePercent).doubleValue() + 0.5);
+        return luminence.intValue();
+    }
 
     public void processCameraImagePrivate() {
         // Notify that image processing has started
@@ -132,11 +162,21 @@ public class ZeroK9Vision {
              */
             ColorImage image = camera.getImage();     // comment if using stored images
             image.write("/cameraImage.bmp");
+            //MonoImage redPlane = image.getRedPlane();
+            //MonoImage greenPlane = image.getGreenPlane();
+            //image.replaceGreenPlane(redPlane);
+            //image.replaceRedPlane(greenPlane);
+            //image.write("/cameraImageSwap.bmp");
             //ColorImage image;   // get the sample image from the cRIO flash
             //image = new RGBImage("/cameraImage.jpg");
             //BinaryImage thresholdImage = image.thresholdHSV(105, 137, 230, 255, 133, 183);   // keep only green objects
             //BinaryImage thresholdImage = image.thresholdRGB(0, 255, 200, 255, 25, 255);   // keep only green objects
-            BinaryImage thresholdImage = image.thresholdRGB(220, 255, 130, 255, 130, 255);   // keep only red objects
+            /***********
+            BinaryImage thresholdImage = image.thresholdHSV(getHue(0), getHue(360), 
+                    getSaturation(0), getSaturation(20), 
+                    getLuminence(60), getLuminence(100));   // keep only red objects
+            /***********/
+            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 200, 255, 200, 255);   // keep only red objects
             thresholdImage.write("/threshold.bmp");
             BinaryImage filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles
             filteredImage.write("/filteredImage.bmp");
