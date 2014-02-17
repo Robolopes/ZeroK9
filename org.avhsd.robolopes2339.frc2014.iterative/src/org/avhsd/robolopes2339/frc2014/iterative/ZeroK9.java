@@ -28,11 +28,13 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.PIDController;
 
 /**
- * The VM is configured to automatically run this class, and to call the
- * methods corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
+ * The VM is configuredLow to automatically run this class, and to call the
+ methods corresponding to each mode, as described in the IterativeRobot
+ documentation. If you change the name of this class or the package after
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
@@ -52,6 +54,12 @@ public class ZeroK9 extends IterativeRobot {
     /**********************
      * CLASS VARIABLES
     /**********************/
+    
+    /*
+     * Smart dashboard preferences
+     */
+    private final Preferences preferences = Preferences.getInstance();
+    private int redLow;
     
     /*
      * Initialize joystck variables.
@@ -74,7 +82,6 @@ public class ZeroK9 extends IterativeRobot {
     private final Talon m_frontRight= new Talon(2);
     private final Talon m_rearLeft  = new Talon(3);
     private final Talon m_rearRight = new Talon(4);
-    
     /*
      * Initialize robot drive to match our controllers
      */
@@ -95,6 +102,16 @@ public class ZeroK9 extends IterativeRobot {
     */
     private final Encoder encoderDrive = new Encoder(5, 8);
     //private final Encoder encodeDriveRight = new Encoder(7, 8);
+    
+    /*
+     * Drive PID controller
+     * See https://wpilib.screenstepslive.com/s/3120/m/7912/l/79828-operating-the-robot-with-feedback-from-sensors-pid-control
+     * See http://www.wbrobotics.com/javadoc/edu/wpi/first/wpilibj/PIDController.html
+    */
+    private final PIDController drivePidFrontLeft = new PIDController(0.1, 0.001, 0.0, encoderDrive, m_frontLeft);
+    private final PIDController drivePidFrontRight = new PIDController(0.1, 0.001, 0.0, encoderDrive, m_frontRight);
+    private final PIDController drivePidRearLeft = new PIDController(0.1, 0.001, 0.0, encoderDrive, m_rearLeft);
+    private final PIDController drivePidRearRight = new PIDController(0.1, 0.001, 0.0, encoderDrive, m_rearRight);
     
     /*
      * Initialize compressor
@@ -182,6 +199,8 @@ public class ZeroK9 extends IterativeRobot {
     public void robotInit() {
         robotStartTime = System.currentTimeMillis();
         System.out.println("Robot init time: " + robotStartTime);
+        
+        redLow = preferences.getInt("Red low", 200);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
         //robotDrive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
         System.out.println("Before init: " + System.currentTimeMillis());
@@ -439,6 +458,20 @@ public class ZeroK9 extends IterativeRobot {
         } else {
             SmartDashboard.putString("Super shifter ", "Low");
         }
+    }
+    
+    public void pidDriveHold(double holdValue) {
+        drivePidFrontLeft.setSetpoint(holdValue);
+        drivePidFrontRight.setSetpoint(holdValue);
+        drivePidRearLeft.setSetpoint(holdValue);
+        drivePidRearRight.setSetpoint(holdValue);
+        robotDrive.tankDrive(holdValue, holdValue);
+    }
+    
+    public void pidBrake() {
+        superShifter.set(true);
+        isSuperShifterLow = true;
+        pidDriveHold(0.0);
     }
     
     /*
