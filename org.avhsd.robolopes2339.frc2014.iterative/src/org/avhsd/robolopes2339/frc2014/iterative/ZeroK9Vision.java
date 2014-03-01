@@ -1,7 +1,6 @@
 
 package org.avhsd.robolopes2339.frc2014.iterative;
 
-import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
@@ -176,7 +175,9 @@ public class ZeroK9Vision {
                     getSaturation(0), getSaturation(20), 
                     getLuminence(60), getLuminence(100));   // keep only red objects
             /***********/
-            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 200, 255, 200, 255);   // keep only red objects
+            // Keep only red objects
+            //BinaryImage thresholdImage = image.thresholdRGB(230, 255, 200, 255, 200, 255);
+            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 0, 128, 0, 128);   // Eric guess from field image 2014-02-28
             thresholdImage.write("/threshold.bmp");
             BinaryImage filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles
             filteredImage.write("/filteredImage.bmp");
