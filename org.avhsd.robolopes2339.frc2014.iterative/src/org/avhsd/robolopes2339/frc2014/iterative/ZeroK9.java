@@ -247,16 +247,14 @@ public class ZeroK9 extends IterativeRobot {
          * Times are in milliseconds
          */
         final long delayTime = 0;
-        final long driveTime = delayTime + 1500;
-        final double driveSpeed = 0.6;
-        final long shooterWinchMotorRetractTime = 1000;
-        final double shooterWinchMotorSpeed = 0.3;
+        final long driveTime = delayTime + 2000;
+        final long clawLowerTime = driveTime + 500;
+        final double driveSpeed = 0.5;
+        final long shooterWinchMotorRetractTime = 1900;
+        final double shooterWinchMotorSpeed = 1.0;
         
         // Don't use claw motors in autonomous
         setClawMotors(0.0);
-        
-        // Make sure claw is down
-        setClawArms("down");
         
         // Retract shooter right away
         if (elapsed < shooterWinchMotorRetractTime && !haveShot) {
@@ -282,12 +280,20 @@ public class ZeroK9 extends IterativeRobot {
             superShifter.set(true);
             isSuperShifterLow = true;
             robotDrive.tankDrive(-driveSpeed, -driveSpeed);
-        } else if (elapsed > driveTime && elapsed < shooterWinchMotorRetractTime && !haveShot) {
+        } else if (elapsed > driveTime && elapsed < clawLowerTime) {
+            autoMode = "Lower claw";
+            robotDrive.tankDrive(0.0, 0.0);
+            // Put claw is down
+            setClawArms("down");
+        } else if (elapsed > clawLowerTime && elapsed < shooterWinchMotorRetractTime) {
             autoMode = "Retracting";
             robotDrive.tankDrive(0.0, 0.0);
-        } else if (elapsed > driveTime && elapsed > shooterWinchMotorRetractTime && !haveShot) {
+            // Stop claw arm
+            stopClawArms();
+        } else if (elapsed > clawLowerTime && elapsed > shooterWinchMotorRetractTime && !haveShot) {
             autoMode = "Waiting to shoot";
             robotDrive.tankDrive(0.0, 0.0);
+            stopClawArms();
             setShootWinchMotors(0);
             if (visionControl.isTargetActive() || elapsed > 6000) {
                 setShootSolenoid(true);
@@ -295,6 +301,7 @@ public class ZeroK9 extends IterativeRobot {
             }
         } else {
             autoMode = "Done";
+            stopClawArms();
             /*
              * Done moving and shooting, shut down
              */
@@ -317,6 +324,8 @@ public class ZeroK9 extends IterativeRobot {
         // Shift to high for teleop
         superShifter.set(false);
         isSuperShifterLow = false;
+        encoderDrive.reset();
+        encoderDrive.setDistancePerPulse(1.0);
     }
 
     /**
@@ -325,6 +334,8 @@ public class ZeroK9 extends IterativeRobot {
     public void teleopPeriodic() {
         SmartDashboard.putNumber("Telop Match Time ", m_ds.getMatchTime());
         SmartDashboard.putNumber("Telop Packet Number ", m_ds.getPacketNumber());
+        SmartDashboard.putNumber("Drive encoder distance", encoderDrive.getDistance());
+        SmartDashboard.putBoolean("Drive encoder direction", encoderDrive.getDirection());
         
         String operatorButtons = "";
         for (int iiButton = 0; iiButton < 10; iiButton++) {
@@ -387,7 +398,7 @@ public class ZeroK9 extends IterativeRobot {
          */
         if(shooterJoystick.getRawButton(shooterWinchMotorLoadButton) && shooterStopSwitch.get()) {
             // Set shooter motors to load
-            setShootWinchMotors(0.3);
+            setShootWinchMotors(1.0);
         } else {
             // Turn off shooter winch motors
             setShootWinchMotors(0.0);
