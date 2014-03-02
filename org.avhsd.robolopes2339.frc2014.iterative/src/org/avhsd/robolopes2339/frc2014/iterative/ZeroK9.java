@@ -180,6 +180,7 @@ public class ZeroK9 extends IterativeRobot {
      */
     private long startTime = 0;
     private boolean haveShot = false;
+    private boolean haveImage = false;
     
     /*
      * Time variables to help with timed printouts
@@ -218,14 +219,11 @@ public class ZeroK9 extends IterativeRobot {
         compressor.start();
         // Turn on cooling fan at beginning of autonomous
         fan.set(Relay.Value.kForward);
-        // Initialize vision
-        System.out.println("Before image: " + System.currentTimeMillis());
-        visionControl.getNewTarget();
-        System.out.println("After image: " + System.currentTimeMillis());
         // Initialize drive encoder
         encoderDrive.reset();
         encoderDrive.setDistancePerPulse(1.0);
         haveShot = false;
+        haveImage = false;
     }
 
     /**
@@ -246,15 +244,27 @@ public class ZeroK9 extends IterativeRobot {
          * Set time intervals for autonomous
          * Times are in milliseconds
          */
+        final long imageWaitTime = 100;
         final long delayTime = 0;
-        final long driveTime = delayTime + 2000;
-        final long clawLowerTime = driveTime + 500;
-        final double driveSpeed = 0.5;
+        // Start bot about 3 ft behind line.
+        final long driveTime = delayTime + 1500; 
+        final long drivePauseTime = driveTime + 500;
+        final long clawLowerTime = drivePauseTime + 300;
+        final double driveSpeed = 1.0;
+        final double leftRation = 1.0;
         final long shooterWinchMotorRetractTime = 1900;
         final double shooterWinchMotorSpeed = 1.0;
         
         // Don't use claw motors in autonomous
         setClawMotors(0.0);
+        
+        // Get image
+        if (elapsed > imageWaitTime && !haveImage) {
+            haveImage = true;
+            System.out.println("Before image: " + System.currentTimeMillis());
+            visionControl.getNewTarget(null);
+            System.out.println("After image: " + System.currentTimeMillis());
+        }
         
         // Retract shooter right away
         if (elapsed < shooterWinchMotorRetractTime && !haveShot) {
@@ -279,8 +289,11 @@ public class ZeroK9 extends IterativeRobot {
              */
             superShifter.set(true);
             isSuperShifterLow = true;
-            robotDrive.tankDrive(-driveSpeed, -driveSpeed);
-        } else if (elapsed > driveTime && elapsed < clawLowerTime) {
+            robotDrive.tankDrive(-leftRation * driveSpeed, -driveSpeed);
+        } else if (elapsed > driveTime && elapsed < drivePauseTime) {
+            autoMode = "After drive pause";
+            robotDrive.tankDrive(0.0, 0.0);
+        } else if (elapsed > drivePauseTime && elapsed < clawLowerTime) {
             autoMode = "Lower claw";
             robotDrive.tankDrive(0.0, 0.0);
             // Put claw is down
@@ -289,6 +302,7 @@ public class ZeroK9 extends IterativeRobot {
             autoMode = "Retracting";
             robotDrive.tankDrive(0.0, 0.0);
             // Stop claw arm
+
             stopClawArms();
         } else if (elapsed > clawLowerTime && elapsed > shooterWinchMotorRetractTime && !haveShot) {
             autoMode = "Waiting to shoot";
@@ -419,10 +433,10 @@ public class ZeroK9 extends IterativeRobot {
         
         if(clawJoystick.getRawButton(clawMotorButtonGrab) && clawGrabSwitch.get()) {
             // Set claw motor to Grab
-            setClawMotors(0.3);
+            setClawMotors(1.0);
         } else if(clawJoystick.getRawButton(clawMotorButtonRelease)) {
             // Set Claw motor to Relase
-            setClawMotors(-0.3);
+            setClawMotors(-1.0);
         } else {
             // Turn off claw motors
             setClawMotors(0.0);
@@ -511,7 +525,7 @@ public class ZeroK9 extends IterativeRobot {
      * @param value motor speed
      */
     public void setClawMotors(double value) {
-        clawMotorA.set(value);
+        clawMotorA.set(-value);
         clawMotorB.set(value);
         SmartDashboard.putNumber("Claw value ", value);
     }
@@ -567,11 +581,37 @@ public class ZeroK9 extends IterativeRobot {
     }
     
     /**
+     * This method is called at the beginning of test mode
+     */
+    public void testInit() {
+        startTime = System.currentTimeMillis();
+        System.out.println("Test init time: " + startTime);
+        haveImage = false;
+    }
+    /**
      * This method is called periodically during test mode
      */
     public void testPeriodic() {
         long time = System.currentTimeMillis();
         SmartDashboard.putNumber("Test Mode Running Time ", time);
+        long elapsed = System.currentTimeMillis() - startTime;
+        SmartDashboard.putBoolean("Actve target ", visionControl.isTargetActive());
+
+        /*
+         * Set time intervals for autonomous
+         * Times are in milliseconds
+         */
+        final long imageWaitTime = 100;
+        
+        // Get image
+        if (elapsed > imageWaitTime && !haveImage) {
+            haveImage = true;
+            System.out.println("Before image: " + System.currentTimeMillis());
+            visionControl.getNewTarget("/cameraImage.jpg");
+            System.out.println("After image: " + System.currentTimeMillis());
+        }
+        
     }
     
-}
+ }   
+

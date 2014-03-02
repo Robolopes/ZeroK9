@@ -135,7 +135,11 @@ public class ZeroK9Vision {
         return luminence.intValue();
     }
 
-    public void processCameraImagePrivate() {
+    /**
+     * 
+     * @param fileImage Name of file to load with image. If null use camera.
+     */
+    public void processCameraImagePrivate(final String fileImage) {
         // Notify that image processing has started
         synchronized(imageLock) {
             if (processingImage) {
@@ -159,15 +163,20 @@ public class ZeroK9Vision {
              * level directory in the flash memory on the cRIO. The file name in this case is "testImage.jpg"
              * 
              */
-            ColorImage image = camera.getImage();     // comment if using stored images
+            ColorImage image;
+            if (fileImage == null || fileImage.trim().length() == 0) {
+                // Get image from camera
+                image = camera.getImage();     // comment if using stored images
+                //MonoImage redPlane = image.getRedPlane();
+                //MonoImage greenPlane = image.getGreenPlane();
+                //image.replaceGreenPlane(redPlane);
+                //image.replaceRedPlane(greenPlane);
+                //image.write("/cameraImageSwap.bmp");
+            } else {
+                // Get image from file
+                image = new RGBImage(fileImage);
+            }
             image.write("/cameraImage.bmp");
-            //MonoImage redPlane = image.getRedPlane();
-            //MonoImage greenPlane = image.getGreenPlane();
-            //image.replaceGreenPlane(redPlane);
-            //image.replaceRedPlane(greenPlane);
-            //image.write("/cameraImageSwap.bmp");
-            //ColorImage image;   // get the sample image from the cRIO flash
-            //image = new RGBImage("/cameraImage.jpg");
             //BinaryImage thresholdImage = image.thresholdHSV(105, 137, 230, 255, 133, 183);   // keep only green objects
             //BinaryImage thresholdImage = image.thresholdRGB(0, 255, 200, 255, 25, 255);   // keep only green objects
             /***********
@@ -176,8 +185,8 @@ public class ZeroK9Vision {
                     getLuminence(60), getLuminence(100));   // keep only red objects
             /***********/
             // Keep only red objects
-            //BinaryImage thresholdImage = image.thresholdRGB(230, 255, 200, 255, 200, 255);
-            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 0, 128, 0, 128);   // Eric guess from field image 2014-02-28
+            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 150, 255, 150, 255);
+            //BinaryImage thresholdImage = image.thresholdRGB(230, 255, 0, 128, 0, 128);   // Eric guess from field image 2014-02-28
             thresholdImage.write("/threshold.bmp");
             BinaryImage filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles
             filteredImage.write("/filteredImage.bmp");
@@ -299,12 +308,16 @@ public class ZeroK9Vision {
         }
     }
     
-    public void getNewTarget() {
+    /**
+     * 
+     * @param fileImage Name of file to load with image. If null use camera.
+     */
+    public void getNewTarget(final String fileImage) {
         if (!processingImage) {
             // Only process image if not currently processing image
             Runnable processImageRunnable = new Runnable() {
                 public void run() {
-                    processCameraImagePrivate();
+                    processCameraImagePrivate(fileImage);
                 }
             };
             Thread imageThread = new Thread(processImageRunnable);
