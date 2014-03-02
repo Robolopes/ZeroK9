@@ -607,16 +607,21 @@ public class ZeroK9 extends IterativeRobot {
         if (elapsed > imageWaitTime && !haveImage) {
             haveImage = true;
             System.out.println("Before image: " + System.currentTimeMillis());
-            /*
-             * Use following line to get image which is stored on cRIO.
-             * This is for calibrating the code with a stored image.
-             */
-            visionControl.getNewTarget("/cameraImage.jpg");
-            /*
-             * Use following line to get image from camera.
-             * This is for on field calibration.
-             */
-            //visionControl.getNewTarget(null);
+            boolean useCameraForImage = true;
+            useCameraForImage = driverStation.getDigitalIn(2);
+            if (useCameraForImage) {
+                /*
+                 * Use following line to get image from camera.
+                 * This is for on field calibration.
+                 */
+                visionControl.getNewTarget(null);
+            } else  {
+                /*
+                 * Use following line to get image which is stored on cRIO.
+                 * This is for calibrating the code with a stored image.
+                 */
+                visionControl.getNewTarget("/cameraImage.jpg");
+            }
             System.out.println("After image: " + System.currentTimeMillis());
         }
         
