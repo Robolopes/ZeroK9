@@ -185,8 +185,9 @@ public class ZeroK9Vision {
                     getLuminence(60), getLuminence(100));   // keep only red objects
             /***********/
             // Keep only red objects
-            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 150, 255, 150, 255);
+            //BinaryImage thresholdImage = image.thresholdRGB(230, 255, 150, 255, 150, 255);
             //BinaryImage thresholdImage = image.thresholdRGB(230, 255, 0, 128, 0, 128);   // Eric guess from field image 2014-02-28
+            BinaryImage thresholdImage = image.thresholdRGB(230, 255, 0, 200, 0, 200);   // After last inland match (from Match 11 2014-03-02
             thresholdImage.write("/threshold.bmp");
             BinaryImage filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles
             filteredImage.write("/filteredImage.bmp");

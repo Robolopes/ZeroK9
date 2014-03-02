@@ -245,10 +245,10 @@ public class ZeroK9 extends IterativeRobot {
          * Times are in milliseconds
          */
         final long imageWaitTime = 100;
-        final long delayTime = 0;
+        final long delayTime = 200;
         // Start bot about 3 ft behind line.
         final long driveTime = delayTime + 1500; 
-        final long drivePauseTime = driveTime + 500;
+        final long drivePauseTime = driveTime + 1000;
         final long clawLowerTime = drivePauseTime + 300;
         final double driveSpeed = 1.0;
         final double leftRation = 1.0;
@@ -281,6 +281,7 @@ public class ZeroK9 extends IterativeRobot {
              * Wait before starting autonomous logic
              */
             robotDrive.tankDrive(0.0, 0.0);
+            stopClawArms();
         } else if(elapsed > delayTime && elapsed < driveTime) {
             autoMode = "Driving forward";
             /*
@@ -290,9 +291,11 @@ public class ZeroK9 extends IterativeRobot {
             superShifter.set(true);
             isSuperShifterLow = true;
             robotDrive.tankDrive(-leftRation * driveSpeed, -driveSpeed);
+            stopClawArms();
         } else if (elapsed > driveTime && elapsed < drivePauseTime) {
             autoMode = "After drive pause";
             robotDrive.tankDrive(0.0, 0.0);
+            stopClawArms();
         } else if (elapsed > drivePauseTime && elapsed < clawLowerTime) {
             autoMode = "Lower claw";
             robotDrive.tankDrive(0.0, 0.0);
@@ -302,7 +305,6 @@ public class ZeroK9 extends IterativeRobot {
             autoMode = "Retracting";
             robotDrive.tankDrive(0.0, 0.0);
             // Stop claw arm
-
             stopClawArms();
         } else if (elapsed > clawLowerTime && elapsed > shooterWinchMotorRetractTime && !haveShot) {
             autoMode = "Waiting to shoot";
