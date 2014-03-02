@@ -598,8 +598,8 @@ public class ZeroK9 extends IterativeRobot {
         SmartDashboard.putBoolean("Actve target ", visionControl.isTargetActive());
 
         /*
-         * Set time intervals for autonomous
-         * Times are in milliseconds
+         * Set wait time before getting image.
+         * Time is in milliseconds
          */
         final long imageWaitTime = 100;
         
@@ -607,7 +607,16 @@ public class ZeroK9 extends IterativeRobot {
         if (elapsed > imageWaitTime && !haveImage) {
             haveImage = true;
             System.out.println("Before image: " + System.currentTimeMillis());
+            /*
+             * Use following line to get image which is stored on cRIO.
+             * This is for calibrating the code with a stored image.
+             */
             visionControl.getNewTarget("/cameraImage.jpg");
+            /*
+             * Use following line to get image from camera.
+             * This is for on field calibration.
+             */
+            //visionControl.getNewTarget(null);
             System.out.println("After image: " + System.currentTimeMillis());
         }
         

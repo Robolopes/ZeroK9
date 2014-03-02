@@ -303,6 +303,7 @@ public class ZeroK9Vision {
         synchronized(imageLock) {
             mostRecentTarget = target;
             System.out.println("mostRecentTarget isValid: " + mostRecentTarget.isValid + ", is hot: " + mostRecentTarget.Hot);
+            System.out.println("Image done time: " + System.currentTimeMillis());
             imageLock.notifyAll();
             processingImage = false;
         }
